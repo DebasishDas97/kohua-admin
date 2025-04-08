@@ -1,12 +1,16 @@
 {
   "name": "kohua",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "description": "A Strapi application",
+  "license": "MIT",
+  "author": {
+    "name": "A Strapi developer"
+  },
   "scripts": {
+    "build": "strapi build",
     "develop": "strapi develop",
     "start": "strapi start",
-    "build": "strapi build",
     "strapi": "strapi"
   },
   "dependencies": {
@@ -16,24 +20,20 @@
     "@strapi/strapi": "^4.25.22",
     "ajv": "^8.17.1",
     "better-sqlite3": "8.6.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-router-dom": "^5.3.4",
     "stripe": "^14.5.0",
     "styled-components": "^5.3.11"
   },
-  "author": {
-    "name": "A Strapi developer"
-  },
-  "strapi": {
-    "uuid": "f008df38-df18-424b-8b9e-b3ccfbc7a261"
+  "devDependencies": {
+    "@types/stripe": "^8.0.416"
   },
   "engines": {
     "node": ">=16.0.0 <=20.x.x",
     "npm": ">=6.0.0"
   },
-  "license": "MIT",
-  "devDependencies": {
-    "@types/stripe": "^8.0.416"
+  "strapi": {
+    "uuid": "f008df38-df18-424b-8b9e-b3ccfbc7a261"
   }
 }
