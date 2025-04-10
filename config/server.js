@@ -1,7 +1,7 @@
 module.exports = ({ env }) => ({
   host: env('HOST', '0.0.0.0'),
   port: env.int('PORT', 1337),
-  url: env('STRAPI_ADMIN_BACKEND_URL'),
+  url: env('STRAPI_ADMIN_BACKEND_URL'),//updated
   app: {
     keys: env.array('APP_KEYS'),
   },
