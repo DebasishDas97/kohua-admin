@@ -1,65 +1,39 @@
-'use strict';
-const stripe = require('stripe')(process.env.STRIPE_KEY);
 
-/**
- * order controller
- */
+const Razorpay = require('razorpay');
 
-const { createCoreController } = require('@strapi/strapi').factories;
+const razorpayInstance = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
-module.exports = createCoreController('api::order.order', ({ strapi }) => ({
-    async create(ctx) {
-        const { products } = ctx.request.body;
+module.exports = {
+  async create(ctx) {
+    const { products } = ctx.request.body;
 
-        try {
-            const deliveryFee = 40;
 
-            const lineItems = await Promise.all(products.map(async (product) => {
-                const item = await strapi.service("api::product.product").findOne(product.id);
-                return {
-                    price_data: {
-                        currency: "inr",
-                        product_data: {
-                            name: item.title,
-                        },
-                        unit_amount: item.price * 100,
-                    },
-                    quantity: product.quantity,
-                };
-            }));
-
-            // Add a separate line item for the delivery fee
-            lineItems.push({
-                price_data: {
-                    currency: "inr",
-                    product_data: {
-                        name: "Delivery Fee",
-                    },
-                    unit_amount: deliveryFee * 100, // Assuming delivery fee is in the smallest currency unit
-                },
-                quantity: 1, // Assuming delivery fee is a flat fee
-            });
-
-            const session = await stripe.checkout.sessions.create({
-                mode: 'payment',
-                success_url: process.env.CLIENT_URL + "success",
-                cancel_url: process.env.CLIENT_URL + "?success=false",
-                line_items: lineItems,
-                shipping_address_collection: { allowed_countries: ["IN"] },
-                phone_number_collection: {
-                    enabled: true,
-                },
-            });
-
-            await strapi.service("api::order.order").create({
-                data: { products, stripeid: session.id },
-            });
-
-            return { stripeSession: session };
-        } catch (err) {
-            ctx.response.status = 500;
-            return { err };
-        }
-
+    if (!products || products.length === 0) {
+      return ctx.throw(400, 'No products found');
     }
-}));
+
+    // Calculate total price in paise
+    const totalAmount = products.reduce((total, item) => total + (item.price * item.quantity), 0) * 100;
+
+    const { currency = 'INR', receipt = 'order_receipt' } = ctx.request.body;
+
+    try {
+      const options = {
+        amount: totalAmount, // Razorpay expects amount in paise
+        currency,
+        receipt,
+      };
+
+      const order = await razorpayInstance.orders.create(options);
+      return { order };
+    } catch (err) {
+      console.error("Error creating Razorpay order", err);
+      ctx.response.status = 500;
+      return { error: 'Razorpay order creation failed', details: err };
+    }
+  },
+};
+
